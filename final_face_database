@@ -1,0 +1,174 @@
+#include "ofApp.h"
+
+
+ 
+ */
+//--------------------------------------------------------------
+void ofApp::setup(){
+
+    img.load("face.png");
+    img.resize(img.getWidth()*0.5, img.getHeight()*0.5);
+    tracker.setup();
+   
+    tracker.setThreaded(false); // good for images
+//    tracker.update(img);
+    
+//    grabber.setup(640,480);
+    
+    fbo.allocate(ofGetWindowWidth(),ofGetWindowHeight(),GL_RGBA);
+    fbo.begin();
+    
+    for (int i = 0; i < 100; i++){
+//        if (i == 26) continue;
+        std::ostringstream ss;
+        ss << "00000/" << std::setw(5) << std::setfill('0') << i << ".png";
+        std::string s(ss.str());
+        cout << s << endl;
+        ofImage im;
+        im.load(s);
+        im.resize(im.getWidth()/1.5, im.getHeight()/1.5);
+        
+        ofPixels pix = im.getPixels();
+        
+        vector<ofPoint> colors;
+        for (int j = 0; j < pix.size(); j+= 3){
+            colors.push_back(ofPoint(pix[j],pix[j+1],pix[j+2]));
+        }
+        vector<ofVec4f> centers = kmeans::run(colors);
+        if (!centers.size()){
+            continue;
+        }
+        ofColor cmax;
+        int imax;
+        float amax = 0;
+        for (int j = 0; j < centers.size(); j++){
+            if (centers[j][3] > amax){
+                amax = centers[j][3];
+                imax = j;
+                cmax = ofColor(centers[j][0],centers[j][1],centers[j][2]);
+            }
+        }
+    cout << cmax << endl;
+    ofPushStyle();
+    ofSetColor(cmax);
+    ofFill();
+    int row = i/16;
+    int col = i%16;
+    ofDrawRectangle(512+col*32,row*64,32,32);
+    ofPopStyle();
+    
+    images.push_back(im);
+        
+        cout << im.getWidth() << endl;
+        tracker.update(im);
+        cout << s << endl;
+
+        if (!tracker.getInstances().size()){
+            cout << "no face" << endl;
+            continue;
+        }
+
+        vector < glm::vec2 > pts = tracker.getInstances()[0].getLandmarks().getImagePoints();
+
+
+        ofPolyline leftEyePoly = tracker.getInstances()[0].getLandmarks().getImageFeature(ofxFaceTracker2Landmarks::LEFT_EYE);
+
+        // resample it and smooth it
+        leftEyePoly = leftEyePoly.getResampledByCount(50);
+        leftEyePoly = leftEyePoly.getSmoothed(5);
+
+        facePiece left;
+
+        left.setup(leftEyePoly, images[images.size()-1]);
+
+        pieces.push_back(left);
+    }
+    
+   
+  for (int i = 0; i < pieces.size(); i++){
+       ofPoint p;
+        do{
+        p = ofPoint(ofRandom(0,512),ofRandom(0,ofGetWindowHeight()));
+       }while (ofDist(p.x, p.y, 512/2, ofGetWindowHeight()/2) > 200
+                //||
+               // ofDist(p.x, p.y, ofGetWindowWidth()/2, ofGetWindowHeight()/2) < 200
+                );
+        
+        pieces[i].draw(p,1,ofRandom(M_PI*2));
+    }
+    
+    fbo.end();
+    
+}
+
+//--------------------------------------------------------------
+void ofApp::update(){
+//    grabber.update();
+//
+//    if (grabber.isFrameNew()){
+//        img.setFromPixels(grabber.getPixels()) ;
+//        tracker.update(img);
+//    }
+}
+ 
+//--------------------------------------------------------------
+void ofApp::draw(){
+    fbo.draw(0,0);
+
+    
+}
+
+//--------------------------------------------------------------
+void ofApp::keyPressed(int key){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::keyReleased(int key){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseMoved(int x, int y ){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseDragged(int x, int y, int button){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mousePressed(int x, int y, int button){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseReleased(int x, int y, int button){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseEntered(int x, int y){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseExited(int x, int y){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::windowResized(int w, int h){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::gotMessage(ofMessage msg){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::dragEvent(ofDragInfo dragInfo){ 
+
+}
