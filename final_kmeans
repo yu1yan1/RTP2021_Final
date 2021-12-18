@@ -1,0 +1,215 @@
+/*****************************************
+ * kmeans                                *
+ *****************************************/
+/* Compiled by WAXC (Version Mar  2 2021)*/
+
+#include <iostream>
+#include <string>
+#include <vector>
+#include <array>
+#include <map>
+#include <math.h>
+
+namespace kmeans{
+/*=== WAX Standard Library BEGIN ===*/
+template <typename T>
+inline void w_arr_insert (std::vector<T>* arr, int i, T x){arr->insert(arr->begin()+i,x);}
+template <typename T>
+inline void w_arr_remove (std::vector<T>* arr, int i, int n){arr->erase(arr->begin()+i,arr->begin()+i+n);}
+template <typename T>
+inline std::vector<T>* w_arr_slice (std::vector<T>* arr, int i, int n){return new std::vector<T>(arr->begin()+i,arr->begin()+i+n);}
+template <typename K, typename V>
+inline V w_map_get (std::map<K,V>* m, K k, V defau){typename std::map<K,V>::iterator it = m->find(k);if (it != m->end()){return it->second;}return defau;}
+template <typename T, std::size_t N>
+inline std::array<T,N>* w_vec_init (T v){std::array<T,N>* vec = new std::array<T,N>;vec->fill(v);return vec;}
+/*=== WAX Standard Library END   ===*/
+
+/*=== User Code            BEGIN ===*/
+
+  #define random() ((float)rand()/RAND_MAX)
+  struct pt{
+    std::array<float,3>* pos=NULL;
+    int cluster=0;
+  };
+  inline float dist_sq(std::array<float,3>* a,std::array<float,3>* b){
+    float d=0.0f;
+    (d=((float)0));
+    for(int i=(0);(int)(i<3);i+=(1)){
+      (d=(float)(d+pow((float)(((*(a))[i])-((*(b))[i])),((float)2))));
+    };
+    return d;
+  }
+  inline void destroy_pts(std::vector<pt*>* pts){
+    for(int i=(0);(int)(i<(pts->size()));i+=(1)){
+      delete ((((*(pts))[i]))->pos);
+      delete ((*(pts))[i]);
+    };
+    delete pts;
+  }
+  inline void recomp_centers(std::vector<pt*>* centers,std::vector<pt*>* pts){
+      if (centers == NULL){
+          return NULL;
+      }
+    int n_clusters=0;
+    (n_clusters=(centers->size()));
+    for(int i=(0);(int)(i<n_clusters);i+=(1)){
+        if (centers == NULL){
+            return NULL;
+        }
+      for(int j=(0);(int)(j<3);j+=(1)){
+          if (centers == NULL){
+              return NULL;
+          }
+        ((*(((((*(centers))[i]))->pos)))[j])=0.0f;
+      };
+      ((((*(centers))[i]))->cluster)=0;
+    };
+    for(int i=(0);(int)(i<(pts->size()));i+=(1)){
+        if (centers == NULL){
+            return NULL;
+        }
+      int c=0;
+      (c=((((*(pts))[i]))->cluster));
+      for(int j=(0);(int)(j<3);j+=(1)){
+          if (centers == NULL){
+              return NULL;
+          }
+        ((*(((((*(centers))[c]))->pos)))[j])=(float)(((*(((((*(centers))[c]))->pos)))[j])+((*(((((*(pts))[i]))->pos)))[j]));
+      };
+      ((((*(centers))[c]))->cluster)=(int)(((((*(centers))[c]))->cluster)+1);
+    };
+    for(int i=(0);(int)(i<n_clusters);i+=(1)){
+        if (centers == NULL){
+            return NULL;
+        }
+      if(((((*(centers))[i]))->cluster)){
+        for(int j=(0);(int)(j<3);j+=(1)){
+            if (centers == NULL){
+                return NULL;
+            }
+          ((*(((((*(centers))[i]))->pos)))[j])=(float)(((*(((((*(centers))[i]))->pos)))[j])/((float)((((*(centers))[i]))->cluster)));
+        };
+      };
+    };
+  }
+  inline std::vector<pt*>* kmeans(std::vector<pt*>* pts,int n_clusters,int max_iter){
+    for(int i=(0);(int)(i<(pts->size()));i+=(1)){
+      ((((*(pts))[i]))->cluster)=((int)(float)(random()*((float)n_clusters)));
+    };
+    std::vector<pt*>* centers=NULL;
+    (centers=(new std::vector<pt*>));
+    for(int i=(0);(int)(i<n_clusters);i+=(1)){
+      pt* p=NULL;
+      (p=(new pt));
+      ((p)->pos)=w_vec_init<float,3>(0.0f);
+      w_arr_insert((centers),((centers->size())),(p));
+    };
+  if (centers == NULL){
+      return NULL;
+  }
+  
+    for(int iter=(0);(int)(iter<max_iter);iter+=(1)){
+        if (centers == NULL){
+            return NULL;
+        }
+      recomp_centers(centers,pts);
+        if (centers == NULL){
+            return NULL;
+        }
+      int diff=0;
+      (diff=0);
+      for(int i=(0);(int)(i<(pts->size()));i+=(1)){
+        float dstmin=0.0f;
+        (dstmin=INFINITY);
+        int argmin=0;
+        (argmin=0);
+        for(int j=(0);(int)(j<n_clusters);j+=(1)){
+          float d=0.0f;
+          (d=dist_sq(((((*(pts))[i]))->pos),((((*(centers))[j]))->pos)));
+          if((int)(d<dstmin)){
+            (dstmin=d);
+            (argmin=j);
+          };
+        };
+        if((argmin!=((((*(pts))[i]))->cluster))){
+          (diff=1);
+        };
+        ((((*(pts))[i]))->cluster)=argmin;
+      };
+      if((!diff)){
+        break;
+      };
+    };
+    destroy_pts(pts);
+      return centers;
+  }
+//  inline void plot2d(std::vector<pt*>* pts){
+//    std::array<int,2500>* pix=NULL;
+//    (pix=w_vec_init<int,2500>(0));
+//    for(int i=(0);(int)(i<(pts->size()));i+=(1)){
+//      int x=0;
+//      (x=((int)((*(((((*(pts))[i]))->pos)))[0])));
+//      int y=0;
+//      (y=((int)((*(((((*(pts))[i]))->pos)))[1])));
+//      ((*(pix))[(int)((int)(y*50)+x)])=(int)(((((*(pts))[i]))->cluster)+1);
+//    };
+//    std::string s="";
+//    (s=std::string(""));
+//    for(int i=(0);(int)(i<2500);i+=(1)){
+//      if((!(int)(i%50))){
+//        (s)+=("\n");
+//      };
+//      (s)+=((int)(((*(pix))[i])+32));
+//    };
+//    std::cout << (s) << std::endl;
+//    delete pix;
+//    ;
+//  }
+  inline vector<ofVec4f> run(vector<ofPoint> points){
+    std::vector<pt*>* pts=NULL;
+    (pts=(new std::vector<pt*>));
+    for(int i=(0);(int)(i<points.size());i+=(1)){
+        pt* p = NULL;
+        p = (new pt);
+        p->pos = w_vec_init<float,3>(0.0f);
+//        (*p->pos[0]) = points[i].x;
+//        (*p->pos[1]) = points[i].y;
+//        (*p->pos[2]) = points[i].z;
+      
+        ((*(((p)->pos)))[0])=(float)points[i].x;
+        ((*(((p)->pos)))[1])=(float)points[i].y;
+        ((*(((p)->pos)))[2])=(float)points[i].z;
+        
+        w_arr_insert((pts),((pts->size())),(p));
+    };
+      std::vector<pt*>* centers = kmeans(pts,4,80);
+      
+      
+
+//      vector<int> clusters;
+//      for (int i = 0; i < points.size(); i++){
+//          clusters.push_back( ((((*(pts))[i]))->cluster) );
+//      }
+      vector<ofVec4f> cs;
+      if (centers == NULL){
+          return cs;
+      }
+      for (int i = 0; i < 4; i++){
+          pt* p = (((*(centers))[i]));
+          array<float,3>* pos = p->pos;
+          float a = (*pos)[0];
+          float b = (*pos)[1];
+          float c = (*pos)[2];
+          cs.push_back(ofVec4f(a,b,c,
+                               (float)((((*(centers))[i]))->cluster)
+                               ));
+      }
+      return cs;
+//  }
+//    plot2d(pts);
+    destroy_pts(centers);
+//    return 0;
+  }
+/*=== User Code            END   ===*/
+};
+
